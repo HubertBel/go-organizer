@@ -62,6 +62,12 @@ func (c *Calendar) RoundTime() {
 	}
 }
 
+func (c *Calendar) JumpToToday() {
+	now := time.Now()
+	c.CurrentDay.Date = time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, now.Location())
+    c.UpdateWeek()
+}
+
 func (c *Calendar) UpdateToNextWeek() {
 	c.CurrentDay.Date = c.CurrentDay.Date.AddDate(0, 0, 7)
 	c.UpdateWeek()

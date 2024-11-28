@@ -119,6 +119,10 @@ func (av *AppView) ShowOrHideSideView(g *gocui.Gui) error {
 	return nil
 }
 
+func (av *AppView) JumpToToday() {
+	av.Calendar.JumpToToday()
+}
+
 func (av *AppView) UpdateToNextWeek() {
 	av.Calendar.UpdateToNextWeek()
 }
@@ -250,7 +254,6 @@ func (av *AppView) HandleEnter(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 	}
-
     return nil
 }
 
