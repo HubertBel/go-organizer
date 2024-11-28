@@ -12,7 +12,7 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 func InitKeybindings(g *gocui.Gui, av *views.AppView) error {
 	g.InputEsc = true
 
-	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
+	if err := g.SetKeybinding("", 'q', gocui.ModNone, quit); err != nil {
 		return err
 	}
 	if err := g.SetKeybinding("", '?', gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
@@ -22,6 +22,11 @@ func InitKeybindings(g *gocui.Gui, av *views.AppView) error {
 	}
 	if err := g.SetKeybinding("", gocui.KeyEsc, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		return av.HandleEscape(g, v)
+	}); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyEnter, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		return av.HandleEnter(g, v)
 	}); err != nil {
 		return err
 	}

@@ -242,6 +242,18 @@ func (av *AppView) ShowPopup(g *gocui.Gui) error {
 	return nil
 }
 
+func (av *AppView) HandleEnter(g *gocui.Gui, v *gocui.View) error {
+	if view, ok := av.GetChild("popup"); ok {
+		if popupView, ok := view.(*EventPopupView); ok {
+			if popupView.IsVisible {
+				return popupView.AddEvent(g, v)
+			}
+		}
+	}
+
+    return nil
+}
+
 func (av *AppView) HandleEscape(g *gocui.Gui, v *gocui.View) error {
 	if view, ok := av.GetChild("popup"); ok {
 		if popupView, ok := view.(*EventPopupView); ok {
@@ -261,6 +273,14 @@ func (av *AppView) HandleEscape(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (av *AppView) ShowKeybinds(g *gocui.Gui) error {
+	if view, ok := av.GetChild("popup"); ok {
+		if popupView, ok := view.(*EventPopupView); ok {
+			if popupView.IsVisible {
+				return nil
+			}
+		}
+	}
+
 	if view, ok := av.GetChild("keybinds"); ok {
 		if keybindsView, ok := view.(*KeybindsView); ok {
 			if keybindsView.IsVisible {
