@@ -47,7 +47,6 @@ func (c *Calendar) UpdateWeek() {
 	}
 }
 
-
 func (c *Calendar) RoundTime() {
 	min := c.CurrentDay.Date.Minute()
 
@@ -64,8 +63,8 @@ func (c *Calendar) RoundTime() {
 
 func (c *Calendar) JumpToToday() {
 	now := time.Now()
-	c.CurrentDay.Date = time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, now.Location())
-    c.UpdateWeek()
+	c.CurrentDay.Date = time.Date(now.Year(), now.Month(), now.Day(), c.CurrentDay.Date.Hour(), c.CurrentDay.Date.Minute(), 0, 0, now.Location())
+	c.UpdateWeek()
 }
 
 func (c *Calendar) UpdateToNextWeek() {
