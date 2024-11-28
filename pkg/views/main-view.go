@@ -2,6 +2,7 @@ package views
 
 import (
 	"github.com/HubertBel/lazyorg/internal/calendar"
+	"github.com/HubertBel/lazyorg/internal/utils"
 	"github.com/jroimartin/gocui"
 )
 
@@ -49,13 +50,17 @@ func (mv *MainView) Update(g *gocui.Gui) error {
 }
 
 func (mv *MainView) updateChildViewProperties() {
-	if timeView, ok := mv.GetChild("time"); ok {
-		timeView.SetProperties(
-			mv.X+1,
-			mv.Y+1,
-			TimeViewWidth,
-			mv.H-2,
-		)
+	if view, ok := mv.GetChild("time"); ok {
+		if timeView, ok := view.(*TimeView); ok {
+			y := utils.TimeToPosition(mv.Calendar.CurrentDay.Date, timeView.Body)
+			timeView.SetCursor(y)
+			timeView.SetProperties(
+				mv.X+1,
+				mv.Y+1,
+				TimeViewWidth,
+				mv.H-2,
+			)
+		}
 	}
 
 	if weekView, ok := mv.GetChild("week"); ok {

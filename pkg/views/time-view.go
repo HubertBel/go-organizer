@@ -9,12 +9,14 @@ import (
 
 type TimeView struct {
 	*BaseView
-	Body string
+	Body   string
+	Cursor int
 }
 
 func NewTimeView() *TimeView {
 	tv := &TimeView{
-        BaseView: NewBaseView("time"),
+		BaseView: NewBaseView("time"),
+		Cursor:   0,
 	}
 
 	return tv
@@ -34,7 +36,7 @@ func (tv *TimeView) Update(g *gocui.Gui) error {
 			return err
 		}
 		v.Frame = false
-        v.FgColor = gocui.ColorGreen
+		v.FgColor = gocui.ColorGreen
 	}
 
 	tv.updateBody(v)
@@ -44,21 +46,33 @@ func (tv *TimeView) Update(g *gocui.Gui) error {
 
 func (tv *TimeView) updateBody(v *gocui.View) {
 	initialTime := 12 - tv.H/4
-	halfTime := 0
 	tv.Body = ""
 
-	for range tv.H {
-        s := utils.FormatHour(initialTime, halfTime)
-		if halfTime == 0 {
-			tv.Body += fmt.Sprintf("%s - \n", s)
-			halfTime = 30
+	for i := range tv.H {
+		var time string
+
+		if i%2 == 0 {
+			hour := utils.FormatHour(initialTime, 0)
+			time = fmt.Sprintf(" %s - \n", hour)
 		} else {
-			tv.Body += fmt.Sprintf("%s \n", s)
+			hour := utils.FormatHour(initialTime, 30)
+			time = fmt.Sprintf(" %s \n", hour)
 			initialTime++
-			halfTime = 0
 		}
+
+		if i == tv.Cursor {
+            runes := []rune(time)
+            runes[0] = '>'
+            time = string(runes)
+		}
+
+		tv.Body += time
 	}
 
 	v.Clear()
 	fmt.Fprintln(v, tv.Body)
+}
+
+func (tv *TimeView) SetCursor(y int) {
+	tv.Cursor = y
 }
