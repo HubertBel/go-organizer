@@ -246,35 +246,6 @@ func (av *AppView) ShowPopup(g *gocui.Gui) error {
 	return nil
 }
 
-func (av *AppView) HandleEnter(g *gocui.Gui, v *gocui.View) error {
-	if view, ok := av.GetChild("popup"); ok {
-		if popupView, ok := view.(*EventPopupView); ok {
-			if popupView.IsVisible {
-				return popupView.AddEvent(g, v)
-			}
-		}
-	}
-    return nil
-}
-
-func (av *AppView) HandleEscape(g *gocui.Gui, v *gocui.View) error {
-	if view, ok := av.GetChild("popup"); ok {
-		if popupView, ok := view.(*EventPopupView); ok {
-			if popupView.IsVisible {
-				return popupView.Close(g, v)
-			}
-		}
-	}
-	if view, ok := av.FindChildView("notepad"); ok {
-		if notepadView, ok := view.(*NotepadView); ok {
-            if notepadView.IsActive {
-                return av.ReturnToMainView(g)
-            }
-		}
-	}
-	return nil
-}
-
 func (av *AppView) ShowKeybinds(g *gocui.Gui) error {
 	if view, ok := av.GetChild("popup"); ok {
 		if popupView, ok := view.(*EventPopupView); ok {

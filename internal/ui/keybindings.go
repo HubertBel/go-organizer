@@ -20,16 +20,6 @@ func InitKeybindings(g *gocui.Gui, av *views.AppView) error {
 	}); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", gocui.KeyEsc, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		return av.HandleEscape(g, v)
-	}); err != nil {
-		return err
-	}
-	if err := g.SetKeybinding("", gocui.KeyEnter, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		return av.HandleEnter(g, v)
-	}); err != nil {
-		return err
-	}
 
 	if err := initMainKeybindings(g, av); err != nil {
 		return err
@@ -82,6 +72,7 @@ func initNotepadKeybindings(g *gocui.Gui, av *views.AppView) error {
 	}{
 		{gocui.KeyCtrlR, func(g *gocui.Gui, v *gocui.View) error { return av.ClearNotepadContent(g) }},
 		{gocui.KeyCtrlN, func(g *gocui.Gui, v *gocui.View) error { return av.ReturnToMainView(g) }},
+		{gocui.KeyEsc, func(g *gocui.Gui, v *gocui.View) error { return av.ReturnToMainView(g) }},
 	}
 	for _, kb := range notepadKeybindings {
 		if err := g.SetKeybinding("notepad", kb.key, gocui.ModNone, kb.handler); err != nil {

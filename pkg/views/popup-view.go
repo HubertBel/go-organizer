@@ -56,8 +56,12 @@ func (epv *EventPopupView) Show(g *gocui.Gui) error {
 
 	form.SetCurrentItem(0)
 
-    epv.Form = form
-    epv.IsVisible = true
+	epv.Form = form
+	epv.IsVisible = true
+
+	if err := epv.initKeybindings(); err != nil {
+		return err
+	}
 
 	form.Draw()
 
@@ -78,9 +82,9 @@ func (epv *EventPopupView) AddEvent(g *gocui.Gui, v *gocui.View) error {
 
 	event := calendar.NewEvent(name, description, location, time, duration, frequency, occurence)
 
-    if _, err := epv.Database.AddRecurringEvents(event); err != nil {
-        return err
-    }
+	if _, err := epv.Database.AddRecurringEvents(event); err != nil {
+		return err
+	}
 
 	return epv.Close(g, v)
 }
@@ -88,4 +92,16 @@ func (epv *EventPopupView) AddEvent(g *gocui.Gui, v *gocui.View) error {
 func (epv *EventPopupView) Close(g *gocui.Gui, v *gocui.View) error {
 	epv.IsVisible = false
 	return epv.Form.Close(g, v)
+}
+
+func (epv *EventPopupView) initKeybindings() error {
+	if err := epv.Form.SetKeybinding("", gocui.KeyEsc, gocui.ModNone, epv.Close); err != nil {
+		return err
+	}
+
+	if err := epv.Form.SetKeybinding("", gocui.KeyEnter, gocui.ModNone, epv.AddEvent); err != nil {
+		return err
+	}
+
+	return nil
 }
