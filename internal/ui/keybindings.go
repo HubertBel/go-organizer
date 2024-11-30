@@ -5,8 +5,9 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-func quit(g *gocui.Gui, v *gocui.View) error {
-	return gocui.ErrQuit
+type Keybind struct {
+	key     interface{}
+	handler func(*gocui.Gui, *gocui.View) error
 }
 
 func InitKeybindings(g *gocui.Gui, av *views.AppView) error {
@@ -32,11 +33,9 @@ func InitKeybindings(g *gocui.Gui, av *views.AppView) error {
 }
 
 func initMainKeybindings(g *gocui.Gui, av *views.AppView) error {
-	mainKeybindings := []struct {
-		key     interface{}
-		handler func(*gocui.Gui, *gocui.View) error
-	}{
-		{'a', func(g *gocui.Gui, v *gocui.View) error { return av.ShowPopup(g) }},
+	mainKeybindings := []Keybind{
+		{'a', func(g *gocui.Gui, v *gocui.View) error { return av.ShowNewEventPopup(g) }},
+		{'e', func(g *gocui.Gui, v *gocui.View) error { return av.ShowEditEventPopup(g) }},
 		{'h', func(g *gocui.Gui, v *gocui.View) error { av.UpdateToPrevDay(g); return nil }},
 		{'l', func(g *gocui.Gui, v *gocui.View) error { av.UpdateToNextDay(g); return nil }},
 		{'j', func(g *gocui.Gui, v *gocui.View) error { av.UpdateToNextTime(g); return nil }},
@@ -45,7 +44,7 @@ func initMainKeybindings(g *gocui.Gui, av *views.AppView) error {
 		{gocui.KeyArrowRight, func(g *gocui.Gui, v *gocui.View) error { av.UpdateToNextDay(g); return nil }},
 		{gocui.KeyArrowDown, func(g *gocui.Gui, v *gocui.View) error { av.UpdateToNextTime(g); return nil }},
 		{gocui.KeyArrowUp, func(g *gocui.Gui, v *gocui.View) error { av.UpdateToPrevTime(g); return nil }},
-        {'T', func(g *gocui.Gui, v *gocui.View) error { av.JumpToToday(); return nil }},
+		{'T', func(g *gocui.Gui, v *gocui.View) error { av.JumpToToday(); return nil }},
 		{'H', func(g *gocui.Gui, v *gocui.View) error { av.UpdateToPrevWeek(); return nil }},
 		{'L', func(g *gocui.Gui, v *gocui.View) error { av.UpdateToNextWeek(); return nil }},
 		{'d', func(g *gocui.Gui, v *gocui.View) error { av.DeleteEvent(g); return nil }},
@@ -53,7 +52,6 @@ func initMainKeybindings(g *gocui.Gui, av *views.AppView) error {
 		{gocui.KeyCtrlN, func(g *gocui.Gui, v *gocui.View) error { return av.ChangeToNotepadView(g) }},
 		{gocui.KeyCtrlS, func(g *gocui.Gui, v *gocui.View) error { return av.ShowOrHideSideView(g) }},
 	}
-
 	for _, viewName := range views.WeekdayNames {
 		for _, kb := range mainKeybindings {
 			if err := g.SetKeybinding(viewName, kb.key, gocui.ModNone, kb.handler); err != nil {
@@ -66,10 +64,7 @@ func initMainKeybindings(g *gocui.Gui, av *views.AppView) error {
 }
 
 func initNotepadKeybindings(g *gocui.Gui, av *views.AppView) error {
-	notepadKeybindings := []struct {
-		key     interface{}
-		handler func(*gocui.Gui, *gocui.View) error
-	}{
+	notepadKeybindings := []Keybind{
 		{gocui.KeyCtrlR, func(g *gocui.Gui, v *gocui.View) error { return av.ClearNotepadContent(g) }},
 		{gocui.KeyCtrlN, func(g *gocui.Gui, v *gocui.View) error { return av.ReturnToMainView(g) }},
 		{gocui.KeyEsc, func(g *gocui.Gui, v *gocui.View) error { return av.ReturnToMainView(g) }},
@@ -81,4 +76,8 @@ func initNotepadKeybindings(g *gocui.Gui, av *views.AppView) error {
 	}
 
 	return nil
+}
+
+func quit(g *gocui.Gui, v *gocui.View) error {
+	return gocui.ErrQuit
 }
