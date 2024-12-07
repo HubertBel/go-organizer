@@ -210,7 +210,7 @@ func (av *AppView) DeleteEvent(g *gocui.Gui) {
 		if dayView, ok := view.(*DayView); ok {
 			if view, ok := dayView.IsOnEvent(y); ok {
 				if eventView, ok := view.(*EventView); ok {
-					av.Database.DeleteEvent(eventView.Event.Id)
+					av.Database.DeleteEventById(eventView.Event.Id)
 				}
 			}
 		}

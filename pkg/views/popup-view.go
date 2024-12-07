@@ -124,7 +124,7 @@ func (epv *EventPopupView) EditEvent(g *gocui.Gui, v *gocui.View) error {
 
 	newEvent := epv.CreateEventFromInputs()
 
-	if err := epv.Database.EditEventById(epv.EventToEdit.Id, newEvent); err != nil {
+	if err := epv.Database.UpdateEventById(epv.EventToEdit.Id, newEvent); err != nil {
 		return err
 	}
 
@@ -137,10 +137,13 @@ func (epv *EventPopupView) AddEvent(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	event := epv.CreateEventFromInputs()
+    events := event.GetReccuringEvents()
 
-	if _, err := epv.Database.AddRecurringEvents(event); err != nil {
-		return err
-	}
+    for _, v := range events {
+        if _, err := epv.Database.AddEvent(v); err != nil {
+            return err
+        }
+    }
 
 	return epv.Close(g, v)
 }
