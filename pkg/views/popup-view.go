@@ -6,7 +6,7 @@ import (
 
 	"github.com/HubertBel/lazyorg/internal/calendar"
 	"github.com/HubertBel/lazyorg/internal/database"
-	"github.com/j-04/gocui-component"
+	component "github.com/j-04/gocui-component"
 	"github.com/jroimartin/gocui"
 )
 
@@ -15,8 +15,6 @@ type EventPopupView struct {
 	Form     *component.Form
 	Calendar *calendar.Calendar
 	Database *database.Database
-
-    EventToEdit *calendar.Event
 
 	IsVisible bool
 }
@@ -38,7 +36,7 @@ func (epv *EventPopupView) Update(g *gocui.Gui) error {
 	return nil
 }
 
-func (epv *EventPopupView) NewForm(g *gocui.Gui, title, name, time, location, duration, frequency, occurence, description string) *component.Form {
+func (epv *EventPopupView) NewEventForm(g *gocui.Gui, title, name, time, location, duration, frequency, occurence, description string) *component.Form {
 	form := component.NewForm(g, title, epv.X, epv.Y, epv.W, epv.H)
 
 	form.AddInputField("Name", LabelWidth, FieldWidth).SetText(name)
@@ -52,15 +50,31 @@ func (epv *EventPopupView) NewForm(g *gocui.Gui, title, name, time, location, du
 	return form
 }
 
+func (epv *EventPopupView) EditEventForm(g *gocui.Gui, title, name, time, location, duration, description string) *component.Form {
+	form := component.NewForm(g, title, epv.X, epv.Y, epv.W, epv.H)
+
+	form.AddInputField("Name", LabelWidth, FieldWidth).SetText(name)
+	form.AddInputField("Time", LabelWidth, FieldWidth).SetText(time)
+	form.AddInputField("Location", LabelWidth, FieldWidth).SetText(location)
+	form.AddInputField("Duration", LabelWidth, FieldWidth).SetText(duration)
+	form.AddInputField("Description", LabelWidth, FieldWidth).SetText(description)
+
+	return form
+}
+
 func (epv *EventPopupView) ShowNewEventPopup(g *gocui.Gui) error {
 	if epv.IsVisible {
 		return nil
 	}
 
-	epv.Form = epv.NewForm(g, "New Event", "", epv.Calendar.CurrentDay.Date.Format(TimeFormat), "", "1.0", "7", "1", "")
+	epv.Form = epv.NewEventForm(g, "New Event", "", epv.Calendar.CurrentDay.Date.Format(TimeFormat), "", "1.0", "7", "1", "")
 	epv.Form.AddButton("Add", epv.AddEvent)
 	epv.Form.AddButton("Cancel", epv.Close)
-	if err := epv.initKeybindings(g, true); err != nil {
+
+	if err := epv.setPopupKeybind(g, gocui.KeyEsc, epv.Close); err != nil {
+		return err
+	}
+	if err := epv.setPopupKeybind(g, gocui.KeyEnter, epv.AddEvent); err != nil {
 		return err
 	}
 
@@ -76,23 +90,28 @@ func (epv *EventPopupView) ShowEditEventPopup(g *gocui.Gui, eventView *EventView
 		return nil
 	}
 
-	epv.EventToEdit = eventView.Event
+	event := eventView.Event
 
-	epv.Form = epv.NewForm(g,
+	epv.Form = epv.EditEventForm(g,
 		"Edit Event",
-		epv.EventToEdit.Name,
-		epv.EventToEdit.Time.Format(TimeFormat),
-		epv.EventToEdit.Location, strconv.FormatFloat(epv.EventToEdit.DurationHour, 'f', -1, 64),
-		strconv.Itoa(epv.EventToEdit.FrequencyDay),
-		strconv.Itoa(epv.EventToEdit.Occurence),
-		epv.EventToEdit.Description,
+		event.Name,
+		event.Time.Format(TimeFormat),
+		event.Location,
+		strconv.FormatFloat(event.DurationHour, 'f', -1, 64),
+		event.Description,
 	)
-	epv.Form.AddButton("Edit", epv.EditEvent)
-	if epv.EventToEdit.Occurence > 1 {
-		epv.Form.AddButton("Edit All", epv.AddEvent)
+
+	editHandler := func(g *gocui.Gui, v *gocui.View) error {
+        return epv.EditEvent(g, v, event)
 	}
+
+	epv.Form.AddButton("Edit", editHandler)
 	epv.Form.AddButton("Cancel", epv.Close)
-	if err := epv.initKeybindings(g, false); err != nil {
+
+	if err := epv.setPopupKeybind(g, gocui.KeyEsc, epv.Close); err != nil {
+		return err
+	}
+	if err := epv.setPopupKeybind(g, gocui.KeyEnter, editHandler); err != nil {
 		return err
 	}
 
@@ -117,33 +136,34 @@ func (epv *EventPopupView) CreateEventFromInputs() *calendar.Event {
 	return calendar.NewEvent(name, description, location, time, duration, frequency, occurence)
 }
 
-func (epv *EventPopupView) EditEvent(g *gocui.Gui, v *gocui.View) error {
-	if !epv.IsVisible {
-		return nil
-	}
-
-	newEvent := epv.CreateEventFromInputs()
-
-	if err := epv.Database.UpdateEventById(epv.EventToEdit.Id, newEvent); err != nil {
-		return err
-	}
-
-	return epv.Close(g, v)
-}
-
 func (epv *EventPopupView) AddEvent(g *gocui.Gui, v *gocui.View) error {
 	if !epv.IsVisible {
 		return nil
 	}
 
 	event := epv.CreateEventFromInputs()
-    events := event.GetReccuringEvents()
+	events := event.GetReccuringEvents()
 
-    for _, v := range events {
-        if _, err := epv.Database.AddEvent(v); err != nil {
-            return err
-        }
-    }
+	for _, v := range events {
+		if _, err := epv.Database.AddEvent(v); err != nil {
+			return err
+		}
+	}
+
+	return epv.Close(g, v)
+}
+
+func (epv *EventPopupView) EditEvent(g *gocui.Gui, v *gocui.View, event *calendar.Event) error {
+	if !epv.IsVisible {
+		return nil
+	}
+
+	newEvent := epv.CreateEventFromInputs()
+	newEvent.Id = event.Id
+
+	if err := epv.Database.UpdateEventById(event.Id, newEvent); err != nil {
+		return err
+	}
 
 	return epv.Close(g, v)
 }
@@ -153,23 +173,11 @@ func (epv *EventPopupView) Close(g *gocui.Gui, v *gocui.View) error {
 	return epv.Form.Close(g, v)
 }
 
-func (epv *EventPopupView) initKeybindings(g *gocui.Gui, isNewEvent bool) error {
+func (epv *EventPopupView) setPopupKeybind(g *gocui.Gui, key interface{}, handler func(g *gocui.Gui, v *gocui.View) error) error {
 	for _, item := range epv.Form.GetItems() {
-        if err := g.SetKeybinding(item.GetLabel(), gocui.KeyEsc, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-            return epv.Close(g, v)
-        }); err != nil {
-            return err
-        }
-
-        if err := g.SetKeybinding(item.GetLabel(), gocui.KeyEnter, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-            if isNewEvent {
-                return epv.AddEvent(g, v)
-            } else {
-                return epv.EditEvent(g, v)
-            }
-        }); err != nil {
-            return err
-        }
+		if err := g.SetKeybinding(item.GetLabel(), key, gocui.ModNone, handler); err != nil {
+			return err
+		}
 	}
 
 	return nil

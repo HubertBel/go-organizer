@@ -208,10 +208,8 @@ func (av *AppView) DeleteEvent(g *gocui.Gui) {
 
 	if view, ok := av.FindChildView(WeekdayNames[av.Calendar.CurrentDay.Date.Weekday()]); ok {
 		if dayView, ok := view.(*DayView); ok {
-			if view, ok := dayView.IsOnEvent(y); ok {
-				if eventView, ok := view.(*EventView); ok {
-					av.Database.DeleteEventById(eventView.Event.Id)
-				}
+			if eventView, ok := dayView.IsOnEvent(y); ok {
+                av.Database.DeleteEventById(eventView.Event.Id)
 			}
 		}
 	}
@@ -222,10 +220,8 @@ func (av *AppView) DeleteEvents(g *gocui.Gui) {
 
 	if view, ok := av.FindChildView(WeekdayNames[av.Calendar.CurrentDay.Date.Weekday()]); ok {
 		if dayView, ok := view.(*DayView); ok {
-			if view, ok := dayView.IsOnEvent(y); ok {
-				if eventView, ok := view.(*EventView); ok {
-					av.Database.DeleteEventsByName(eventView.Event.Name)
-				}
+			if eventView, ok := dayView.IsOnEvent(y); ok {
+                av.Database.DeleteEventsByName(eventView.Event.Name)
 			}
 		}
 	}
@@ -256,8 +252,11 @@ func (av *AppView) ShowEditEventPopup(g *gocui.Gui) error {
 				PopupHeight,
 			)
             hoveredView := av.GetHoveredOnView(g)
-			if test, ok := hoveredView.(*EventView); ok {
-				return popupView.ShowEditEventPopup(g, test)
+			if eventView, ok := hoveredView.(*EventView); ok {
+                err := popupView.ShowEditEventPopup(g, eventView)
+                if err != nil {
+                    return err
+                }
 			}
 		}
 	}
@@ -265,14 +264,6 @@ func (av *AppView) ShowEditEventPopup(g *gocui.Gui) error {
 }
 
 func (av *AppView) ShowKeybinds(g *gocui.Gui) error {
-	if view, ok := av.GetChild("popup"); ok {
-		if popupView, ok := view.(*EventPopupView); ok {
-			if popupView.IsVisible {
-				return nil
-			}
-		}
-	}
-
 	if view, ok := av.GetChild("keybinds"); ok {
 		if keybindsView, ok := view.(*KeybindsView); ok {
 			if keybindsView.IsVisible {
@@ -332,6 +323,15 @@ func (av *AppView) updateCurrentView(g *gocui.Gui) error {
 	if view, ok := av.GetChild("popup"); ok {
 		if popupView, ok := view.(*EventPopupView); ok {
 			if popupView.IsVisible {
+				return nil
+			}
+		}
+	}
+	if view, ok := av.GetChild("keybinds"); ok {
+		if keybindsView, ok := view.(*KeybindsView); ok {
+			if keybindsView.IsVisible {
+                g.Cursor = false
+                g.SetCurrentView("keybinds")
 				return nil
 			}
 		}

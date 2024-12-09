@@ -43,7 +43,7 @@ func (database *Database) createTables() error {
         CREATE TABLE IF NOT EXISTS notes (
         id INTEGER NOT NULL PRIMARY KEY,
         content TEXT NOT NULL,
-        time DATETIME NOT NULL
+        updated_at DATETIME NOT NULL
     )`)
 	if err != nil {
 		return err
@@ -78,33 +78,33 @@ func (database *Database) AddEvent(event calendar.Event) (int, error) {
 }
 
 func (database *Database) GetEventById(id int) (*calendar.Event, error) {
-    rows, err := database.db.Query(`
+	rows, err := database.db.Query(`
         SELECT * FROM events WHERE id = ?`,
-        id,
-    )
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
+		id,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-    if rows.Next() {
-        var event calendar.Event
-        if err := rows.Scan(
-            &event.Id,
-            &event.Name,
-            &event.Description,
-            &event.Location,
-            &event.Time,
-            &event.DurationHour,
-            &event.FrequencyDay,
-            &event.Occurence,
-        ); err != nil {
-            return nil, err
-        }
-        return &event, nil
-    }
+	if rows.Next() {
+		var event calendar.Event
+		if err := rows.Scan(
+			&event.Id,
+			&event.Name,
+			&event.Description,
+			&event.Location,
+			&event.Time,
+			&event.DurationHour,
+			&event.FrequencyDay,
+			&event.Occurence,
+		); err != nil {
+			return nil, err
+		}
+		return &event, nil
+	}
 
-    return nil, nil
+	return nil, nil
 }
 
 func (database *Database) GetEventsByDate(date time.Time) ([]*calendar.Event, error) {
@@ -153,7 +153,27 @@ func (database *Database) DeleteEventsByName(name string) error {
 }
 
 func (database *Database) UpdateEventById(id int, event *calendar.Event) error {
-	return nil
+	_, err := database.db.Exec(
+		`UPDATE events SET
+            name = ?, 
+            description = ?, 
+            location = ?, 
+            time = ?, 
+            duration = ?, 
+            frequency = ?, 
+            occurence = ? 
+        WHERE id = ?`,
+            event.Name,
+            event.Description,
+            event.Location,
+            event.Time,
+            event.DurationHour,
+            event.FrequencyDay,
+            event.Occurence,
+            id,
+        )
+
+	return err
 }
 
 func (database *Database) UpdateEventByName(name string) error {
@@ -167,7 +187,7 @@ func (database *Database) SaveNote(content string) error {
 	}
 
 	_, err = database.db.Exec(`INSERT INTO notes (
-            content, time
+            content, updated_at
         ) VALUES (?, datetime('now'))`, content)
 
 	return err
@@ -176,7 +196,7 @@ func (database *Database) SaveNote(content string) error {
 func (database *Database) GetLatestNote() (string, error) {
 	var content string
 	err := database.db.QueryRow(
-		"SELECT content FROM notes ORDER BY time DESC LIMIT 1",
+		"SELECT content FROM notes ORDER BY updated_at DESC LIMIT 1",
 	).Scan(&content)
 
 	return content, err

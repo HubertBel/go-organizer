@@ -92,6 +92,7 @@ func (dv *DayView) updateChildViewProperties(g *gocui.Gui) error {
 		viewName := fmt.Sprintf("%s-%d", event.Name, event.Id)
 		if existingView, exists := eventViews[viewName]; exists {
 			existingView.X, existingView.Y, existingView.W, existingView.H = x, y, w, h
+            existingView.Event = event
 			delete(eventViews, viewName)
 		} else {
 			ev := NewEvenView(viewName, event)
@@ -110,7 +111,7 @@ func (dv *DayView) updateChildViewProperties(g *gocui.Gui) error {
 	return nil
 }
 
-func (dv *DayView) IsOnEvent(y int) (View, bool) {
+func (dv *DayView) IsOnEvent(y int) (*EventView, bool) {
 	y += dv.Y + 1
 	for pair := dv.children.Newest(); pair != nil; pair = pair.Prev() {
 		if eventView, ok := pair.Value.(*EventView); ok {
