@@ -71,10 +71,10 @@ func (epv *EventPopupView) ShowNewEventPopup(g *gocui.Gui) error {
 	epv.Form.AddButton("Add", epv.AddEvent)
 	epv.Form.AddButton("Cancel", epv.Close)
 
-	if err := epv.setPopupKeybind(g, gocui.KeyEsc, epv.Close); err != nil {
+	if err := epv.setPopupKeybind(g, gocui.KeyEsc, gocui.ModNone, epv.Close); err != nil {
 		return err
 	}
-	if err := epv.setPopupKeybind(g, gocui.KeyEnter, epv.AddEvent); err != nil {
+	if err := epv.setPopupKeybind(g, gocui.KeyEnter, gocui.ModNone, epv.AddEvent); err != nil {
 		return err
 	}
 
@@ -108,10 +108,10 @@ func (epv *EventPopupView) ShowEditEventPopup(g *gocui.Gui, eventView *EventView
 	epv.Form.AddButton("Edit", editHandler)
 	epv.Form.AddButton("Cancel", epv.Close)
 
-	if err := epv.setPopupKeybind(g, gocui.KeyEsc, epv.Close); err != nil {
+	if err := epv.setPopupKeybind(g, gocui.KeyEsc, gocui.ModNone, epv.Close); err != nil {
 		return err
 	}
-	if err := epv.setPopupKeybind(g, gocui.KeyEnter, editHandler); err != nil {
+	if err := epv.setPopupKeybind(g, gocui.KeyEnter, gocui.ModNone, editHandler); err != nil {
 		return err
 	}
 
@@ -173,9 +173,9 @@ func (epv *EventPopupView) Close(g *gocui.Gui, v *gocui.View) error {
 	return epv.Form.Close(g, v)
 }
 
-func (epv *EventPopupView) setPopupKeybind(g *gocui.Gui, key interface{}, handler func(g *gocui.Gui, v *gocui.View) error) error {
+func (epv *EventPopupView) setPopupKeybind(g *gocui.Gui, key interface{}, mod gocui.Modifier, handler func(g *gocui.Gui, v *gocui.View) error) error {
 	for _, item := range epv.Form.GetItems() {
-		if err := g.SetKeybinding(item.GetLabel(), key, gocui.ModNone, handler); err != nil {
+		if err := g.SetKeybinding(item.GetLabel(), key, mod, handler); err != nil {
 			return err
 		}
 	}
