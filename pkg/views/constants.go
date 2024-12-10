@@ -2,7 +2,7 @@ package views
 
 const (
 	KeybindsWidth  = 48
-	KeybindsHeight = 21
+	KeybindsHeight = 23
 
 	LabelWidth = 12
 	FieldWidth = 20
