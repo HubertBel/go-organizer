@@ -57,7 +57,7 @@ func (epv *EventPopupView) EditEventForm(g *gocui.Gui, title, name, time, locati
 	form.AddInputField("Name", LabelWidth, FieldWidth).SetText(name).AddValidate("Invalid name", utils.ValidateName)
 	form.AddInputField("Time", LabelWidth, FieldWidth).SetText(time).AddValidate("Invalid time", utils.ValidateTime)
 	form.AddInputField("Location", LabelWidth, FieldWidth).SetText(location)
-	form.AddInputField("Duration", LabelWidth, FieldWidth).SetText(duration).AddValidate("Invalid duration", utils.ValidateNumber)
+	form.AddInputField("Duration", LabelWidth, FieldWidth).SetText(duration).AddValidate("Invalid duration", utils.ValidateDuration)
 	form.AddInputField("Description", LabelWidth, FieldWidth).SetText(description)
 
 	return form
