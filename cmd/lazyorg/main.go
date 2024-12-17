@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/HubertBel/lazyorg/internal/cli"
 	"github.com/HubertBel/lazyorg/internal/database"
 	"github.com/HubertBel/lazyorg/internal/ui"
 	"github.com/HubertBel/lazyorg/pkg/views"
@@ -12,6 +13,8 @@ import (
 )
 
 func main() {
+    cli.InitFlags()
+
     homeDir, err := os.UserHomeDir()
     if err != nil {
         log.Fatal(err)
